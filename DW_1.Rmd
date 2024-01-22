@@ -1,0 +1,411 @@
+  
+***YouTube_ by_Equitable_Equations : diamonds package*** &
+
+```{r}
+# data() : all datasets on our computer
+```
+
+#USING dplyr(): filter(),select(),
+```{r}
+#load packages
+library(tidyverse)
+library(dplyr)
+library(knitr)
+head(diamonds)
+?diamonds
+```
+****
+#### FILTER:
+
+#subset by row with filter():   
+-if we want only "Ideal cut" diamonds:
+```{r}
+diamonds_ideal <- filter(diamonds,cut == "Ideal")
+```
+
+#eg: Subset by a quantitative variable: Find most expensive diamonds:
+```{r}
+diamonds_ideal <- filter(diamonds, price > 10000)
+```
+#Using multiple conditions :
+```{r}
+diamonds_sm <- filter(diamonds,
+                         cut =="Good",
+                         price >10000) # Adding comma - allows to use & ***
+```
+
+```{r}
+diamonds_lg <- filter(diamonds,
+                         cut =="Good" |
+                       price >10000) # Adding '|' or 'vertical bar' - allows to use 'OR' ***
+```
+
+# filter for missing values: use "is.na "and "!is.na ":
+```{r}
+filter(diamonds, is.na(price))
+```
+
+
+****
+#### SELECT: allows to choose columns in the dataset:
+Eg: If we have hundreds of variables/columns: we can subset the interseted columns:
+```{r}
+diamonds_1 <- select(diamonds,cut,color) # & statement 
+```
+# specify the columns in different ways:
+```{r}
+#General vocabulary for picking columns in tidyverse is tidy_select:
+diamonds_sm <- select(diamonds,1:4) #selecting columns/variables is by specifying a range of columns:
+#So we can subset by names and numbers
+```
+
+```{r}
+#Helper Verbs: starts_with, ends_with, matches etc.
+
+# eg :Subsetting columns starting with "c": 
+diamonds_sm <- select(diamonds, starts_with("c")) 
+diamonds_sm <- select(diamonds, contains("c")) 
+```
+
+```{r}
+#move price upfront:
+#Method_1 : write dataset,price, and other columns:
+diamonds_sm <- select(diamonds,price,cut,color, ) 
+
+#Method_2 :Using helper verb:
+diamonds_sm <- select(diamonds,
+                      price,everything())  #Using everything() verb:
+```
+
+```{r}
+#To eliminate any column: Eg: Eliminate "price":
+diamonds_sm <- select(diamonds,-price)  #All columns except price:
+```
+head(diamonds_sm)
+
+****
+##### WE CAN USE PIPE TO SOLVE ALL Q's:
+#USING pipe:
+```{r}
+diamonds_sm <- diamonds |>  #we can use "%>% "or "|>" [command+shift+M]
+  select(-price)
+```
+
+```{r}
+# 2ways to solve ..."many_airports" is easier than method1:
+library(nycflights13)
+#Method_1:
+many_airports_1 <- flights %>% 
+  filter(dest == "SEA" | dest == "SFO" | dest == "PDX" | 
+         dest == "BTV" | dest == "BDL")
+head(many_airports_1)
+
+#Method_2: "%in%" useful for looking for matches commonly in one vector/variable compared to another:
+many_airports <- flights %>% 
+  filter(dest %in% c("SEA", "SFO", "PDX", "BTV", "BDL"))
+head(many_airports)
+
+```
+
+****
+
+#### ARRANGE : To reorder rows:
+```{r}
+diamonds_arr <- diamonds %>% 
+  arrange(color)  #add condition: ARRANGED alphabetically 
+
+#First arrange by color and then by carat:
+diamonds_arr <- diamonds %>% 
+  arrange(color,carat) 
+
+#Reverse order: 
+diamonds_arr <- diamonds %>% 
+  arrange(color,carat) 
+#We can use multiple criterias
+head(diamonds_arr)
+```
+
+```{r}
+#Eg; We want the biggest diamonds upfront:Use desc()
+diamonds_arr <- diamonds %>% 
+  arrange(desc(carat))  # Alternative : arrange(-carat)
+head(diamonds_arr)
+```
+#Use glimpse()
+```{r}
+glimpse(diamonds)
+```
+****
+
+#### MUTATE: To add or modify columns:create/compute new variables based on existing ones
+```{r}
+# We want a column that converts "carats" to "grams":
+diamonds_new <- diamonds %>% 
+  mutate(mass_g = .20 *carat)  #As each carat is 0.2 gms
+
+#Add multiple columns at a time:
+diamonds_new <- diamonds %>% 
+  mutate(mass_g = .20 *carat,
+         price_per_carat = price/carat)
+head(diamonds_new)
+
+#Instead of a new data frame "diamonds_new", we can use diamonds df directly.As a rough rule of thumb, as long as you are not losing original information that you might need later, it’s acceptable practice to overwrite existing data frames with updated ones.
+#more succinct way to compute a variety of common summary statistics: using the skim() function from the skimr package.
+```
+
+```{r}
+# We can modify column names:
+diamonds_new <- diamonds %>% 
+  mutate(mass_g = .20 *carat,
+         price_per_carat = price/carat,
+         cut = toupper(cut))    #tolower ,toupper
+head(diamonds_new)
+```
+
+```{r}
+diamonds_new <- diamonds %>% 
+  mutate(mass_g = .20 *carat,
+         price_per_carat = price/carat,
+         cut = toupper(cut),
+         expensive = price >10000)  #logical condition so anything above 10000 will be expensive
+head(diamonds_new)
+```
+****
+#Other smaller verbs:
+# ?slice_max /slice_min:select rows with highets or lowest avlues of a variable
+# ? bind_rows : same datframes with same columns that we want to latch together
+# ?left_join : similar info, same observations but may have different 
+# ?rename:
+#?case_when : generalized if_else:
+
+
+****
+#### grouped summaries with group_by() and summarize () :
+```{r}
+#diamonds  #53,940 × 10
+diamonds %>% 
+  group_by(cut)  #53,940 × 10  and Groups:cut [5]
+#Here Groups:cut [5] is the meta_data...DATA ABOUT THE DATA
+#group_by() function doesn’t change data frames by itself. Rather it changes the meta-data.It is only after we apply the summarize() function that the data frame changes.
+# Groups: cut [5] indicating that the grouping structure meta-data has been set based on the 5 possible levels of the categorical variable cut: "Fair", "Good", "Very Good", "Premium", and "Ideal". On the other hand, observe that the data has not changed: it is still a table of 53,940×10 values.
+```
+
+```{r}
+# group cut by color:
+diamonds_g <- diamonds %>% 
+  group_by(cut) %>% 
+  summarize(avg_price=mean(price),
+            sd_price = sd(price))
+```
+
+```{r}
+# grouping by multiple variables :
+diamonds_g <- diamonds %>% 
+  group_by(cut,color) %>% 
+  summarize(avg_price=mean(price),
+            sd_price = sd(price),
+            count = n())  
+#n() function counts rows
+#sum() summary function that returns the sum of a numerical variable.
+head(diamonds_g)
+
+# grouping by multiple variables :
+diamonds_g <- diamonds %>% 
+  group_by(cut,color) %>% 
+  summarize(count = n())  
+head(diamonds_g)
+
+#What if we use group_by differently for both variables:never use this
+diamonds_g_incorrect <- diamonds %>% 
+  group_by(cut) %>% 
+  group_by(color) %>% 
+  summarize(count=n())
+head(diamonds_g_incorrect)
+
+#The second group_by(color) overwrote the grouping structure meta-data of the earlier group_by(cut), so that in the end we are only grouping by color. So if we want to group_by() two or more variables, we should include all the variables at the same time in the same group_by() adding a comma between the variable names.
+```
+
+```{r}
+#Sometimes we just want only count():
+diamonds|>
+  count(cut,
+        color)  #counts only
+```
+
+*Summary statistics are single numerical values that summarize a large number of values.*
+*summarize() function takes in a data frame and returns a data frame with only one row corresponding to the summary statistics.*
+```{r}
+#Group by expensive or non-expensive:
+diamonds|>
+  group_by(expensive = price >10000) |>
+  summarize(avg_price=mean(price), #mean(price, na.rm = TRUE) ..coz if there is one or more NA's in the variable..NA is returned in summary stats.
+            sd_price = sd(price),
+            count = n()) 
+#R is set to FALSE by default for na.rm. R does not ignore rows with missing values by default. R is alerting us to the presence of missing data and we should be mindful of this missingness and any potential causes of this missingness throughout our analysis.
+# FALSE: diamonds that are below 10000----- we have the count and their avg prices
+# TRUE :diamonds above 10000
+```
+Original Data (diamonds)
+   |
+Grouping
+   |
+Summarizing
+   |
+Result
+
+#Summarize:
+*mean(): the average
+*sd(): the standard deviation, which is a measure of spread
+*min() and max(): the minimum and maximum values, respectively
+*IQR(): interquartile range
+*sum(): the total amount when adding multiple numbers
+*n(): a count of the number of rows in each group. This particular summary function will make more sense when group_by()
+
+****
+
+
+
+
+### Example: Mutate:
+**Q.Passengers are often frustrated when their flight departs late, but aren’t as annoyed if, in the end, pilots can make up some time during the flight. This is known in the airline industry as gain
+
+```{r}
+flights_2 <- flights %>% 
+  mutate(gain = dep_delay - arr_delay) %>% 
+  select(dep_delay,arr_delay,gain)
+head(flights_2,5)
+#first row departed 2 minutes late but arrived 11 minutes late, so its “gained time in the air” is a loss of 9 minutes, hence its gain is 2 - 11 = -9.
+#fourth row departed a minute early (dep_delay of -1) but arrived 18 minutes early (arr_delay of -18), so its “gained time in the air” is  -1-(-18)=-17min gain minutes, hence its gain is +17
+gain_summary <- flights_2 %>% 
+  summarize(
+    min = min(gain, na.rm = TRUE),
+    q1 = quantile(gain, 0.25, na.rm = TRUE),
+    median = quantile(gain, 0.5, na.rm = TRUE),
+    q3 = quantile(gain, 0.75, na.rm = TRUE),
+    max = max(gain, na.rm = TRUE),
+    mean = mean(gain, na.rm = TRUE),
+    sd = sd(gain, na.rm = TRUE),
+    missing = sum(is.na(gain))
+  )
+gain_summary
+#average gain is +5 minutes, while the largest is +109 minutes! However, this code would take some time to type out in practice.There is a much more succinct way to compute a variety of common summary statistics: using the skim() function from the skimr package.
+ggplot(data = flights_2, mapping = aes(x = gain)) +
+  geom_histogram(color = "white", bins = 20)
+#most values of gain are right around 0.
+```
+
+
+#### RENAME :changes the name of variables.
+```{r}
+library(nycflights13)
+flights_time_new <- flights %>% 
+  select(dep_time, arr_time) %>% 
+  rename(departure_time = dep_time, arrival_time = arr_time)
+glimpse(flights_time_new)
+```
+
+#### top_n() values :changes the name of variables.
+```{r}
+#Eg: return a data frame of the top 10 destination airports using "flights" df:
+
+named_dests <- flights %>%
+  group_by(dest) %>%
+  summarize(num_flights = n()) %>%
+  arrange(desc(num_flights)) %>%
+  inner_join(airports, by = c("dest" = "faa")) %>%
+  rename(airport_name = name)
+
+named_dests  %>% 
+  top_n(n = 10, wt = num_flights) %>% 
+  arrange(desc(num_flights))
+head(named_dests)
+
+```
+
+
+
+
+
+#Summary of data wrangling verbs#
+
+```{r}
+df_3 <- data.frame(
+  "Verb" = c("filter()","summarize()","group_by()","mutate()","arrange()","inner_join()"),
+  
+"Data wrangling operation" = c("Pick out a subset of rows","Summarize many values to one using a summary statistic function like mean(), median(), etc.","Add grouping structure to rows in data frame. Note this does not change values in data frame, rather only the meta-data","Create new variables by mutating existing ones
+","Arrange rows of a data variable in ascending (default) or descending order","Join/merge two data frames, matching rows by a key variable"))
+kable(df_3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
