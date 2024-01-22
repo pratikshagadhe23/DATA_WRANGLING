@@ -1,0 +1,422 @@
+---
+title: "DW_2_JOINS"
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(babynames)
+head(babynames)
+head(applicants) #includes individuals that were assigned SSN that were born in each of those years.
+```
+
+```{r}
+
+data1 <- data.frame(ID =1:2,
+                    X1 = c("a1","a2"),
+                    stringsAsFactors = FALSE)
+
+data2 <- data.frame(ID =2:3,
+                    X2 =c("b1","b2"),
+                    stringsAsFactors = FALSE)
+data1
+data2
+
+```
+
+*Mutating joins: inner join, left join, right join, and full join* *Filtering joins: semi join and anti join*
+
+*Basic syntax for a join in R*
+
+```{r}
+# performing join with different field names:
+
+#df7 <- data1 %>% 
+ # join_type(data2,by="common_field_data1" = "common_field_data2)
+
+# when common field in both tables have the same name:
+
+#df8 <- data1 %>% 
+ # join_type(data2,by="common_field_name")
+```
+
+*Multiple Joins:*
+
+```{r}
+#Using pipe operator to add another join:
+#df9 <- data1 %>% 
+#  join_type(data2, by="common_field_data1" = "common_field_data2) %>% 
+# join_type(data3, by="common_field_data2" = "common_field_data3)
+```
+
+*Suffix:*
+
+```{r}
+#When the fields in both data frames have the same name, you can use the suffix() argument to add a suffix to identify which column belongs to which data frame:
+#adding a suffix to joins with the same field name:
+
+# df10 <- data1 %>%
+#      join_type(data2, by = "common_field_name"), suffix = c("_df1", "_df2"))
+
+#a suffix concatenates the desired values to the end of the column names 
+```
+
+###### INNER_JOIN(NATURAL JOIN):Returns only the rows where there is a match in both data frames based on the specified key columns.
+
+```{r}
+#Searches common "ID's" in both data frame, i.e., same rows or rows present in both df are returned
+inner_join(data1,data2,by="ID")
+```
+
+###### LEFT_JOIN:Returns all rows from the left data frame and the matching rows from the right data frame. If there is no match, NA values are filled in for the columns from the right data frame.
+
+```{r}
+left_join(data1,data2,by="ID")
+```
+
+###### RIGHT_JOIN:Returns all rows from the right data frame and the matching rows from the left data frame. If there is no match, NA values are filled in for the columns from the left data frame.
+
+```{r}
+right_join(data1,data2,by="ID")
+```
+
+###### FULL_JOIN(OUTER JOIN):Returns all rows from both data frame,including matching and non-matching rows. If there is no match, NA values are filled in for the columns from the non-matching data frame.
+
+```{r}
+full_join(data1,data2,by="ID")
+```
+
+###### ANTI_JOIN: Returns all rows from the left data frame where there is no match in the right data frame.
+-It helps in finding elements that are unique to the left dataset compared to the right dataset.
+```{r}
+anti_join(data1,data2,by="ID")
+```
+
+###### SEMI_JOIN: A semi join returns all rows from the left data frame where there is a match in the right data frame, but it doesn't include the columns from the right data frame in the result.  
+-helpful when you want to find common elements between datasets without duplicating rows.
+-A semi join differs from an inner join because an inner join will return one row of x for each matching row of y, whereas a semi join will never duplicate rows of x.
+
+```{r}
+semi_join(data1,data2,by="ID")
+```
+
+
+[![](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*pYdVGeN2JQKPq2CixVJc7g.png)](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*pYdVGeN2JQKPq2CixVJc7g.png)
+
+-----
+
+
+*Example_1:*
+
+```{r}
+# Create employees dataset
+employees <- data.frame(
+  id = c(1, 2, 3, 4),
+  name = c("Alice", "Bob", "Charlie", "David"),
+  age = c(25, 30, 22, 28))
+
+# Create departments dataset
+departments <- data.frame(
+  id = c(2, 3, 5, 6),
+  department = c("HR", "Finance", "IT", "Sales"))
+employees
+departments
+# Employees & Departments :2 data frames
+# Common field : id
+```
+
+```{r}
+#Inner Join:
+inner_join(employees,departments, by="id")
+
+#Left Join:
+left_join(employees,departments, by="id")
+
+#Right Join:
+right_join(employees,departments, by="id")
+
+#Full Join:
+full_join(employees,departments, by="id")
+
+```
+
+*Example_2:*
+
+```{r}
+library(dplyr)
+
+# Create dataset1
+english_grades <- data.frame(
+  ID = c(1, 2, 3, 4),
+  Name = c("Alice", "Bob", "Charlie", "David"),
+  Score = c(85, 92, 78, 95))
+
+# Create dataset2
+math_grades <- data.frame(
+  ID = c(2, 3, 5, 6),
+  Score = c(88, 90, 85, 89))
+
+english_grades
+math_grades
+```
+
+```{r}
+#Performing an inner_join between these datasets and use the suffix argument
+
+daf <- english_grades %>% 
+  inner_join(math_grades,by="ID",suffix = c("_eng","_math")) #alternative suffix = c("_left","_right"))
+daf
+```
+
+-The suffix argument added "\_eng" to the "Score" column from the first data frame and "\_math" to the "Score" column from the second data frame. This helps to distinguish the columns with the same name when combining the datasets in the result.\
+-Useful when dealing with datasets that have overlapping column names to avoid naming conflicts and make the resulting dataset more interpretable.
+
+
+**Example_3:Inner Join vs Semi Join vs Anti Join*
+
+```{r}
+customers <- data.frame(
+  CustomerID = c(1, 2, 3, 4, 5),
+  CustomerName = c("Alice", "Bob", "Charlie", "David", "Eva"))
+
+# Create the orders table
+orders <- data.frame(
+  OrderID = c(101, 102, 103, 104, 105, 106),
+  CustomerID = c(3, 2, 4, 1, 3, 6))
+customers
+orders
+# CustomerID is the common field.
+```
+
+```{r}
+#inner_join:
+inn_result <- inner_join(customers,orders, by="CustomerID")
+inn_result
+```
+```{r}
+#semi_join:
+semi_result <- semi_join(customers,orders, by="CustomerID")
+semi_result
+#It filters out the customers who do not have any orders. 
+#NOTE: Only one instance of the record with customer id 3 is returned in the output, this is because the semi_join() function only returns unique records.
+```
+
+```{r}
+#anti_join:
+anti_result <- anti_join(customers,orders,
+                         by="CustomerID")
+anti_result
+#It filters out the customers who have placed orders and retains only the customers who have not placed any orders.
+```
+
+
+
+#BIND ROWS:
+-Used to combine multiple data frames vertically, stacking them one on top of another, instead of joining them side by side. 
+-It combines rows from different data frames to create a single larger data frame. 
+-Useful when you have multiple datasets with the same columns and want to stack them together.
+
+#Example_4:
+```{r}
+section1 <- data.frame(
+  ID = c(1, 2, 3, 4),
+  Name = c("Alice", "Bob", "Charlie", "David"),
+  Score = c(85, 92, 78, 95))
+
+# Create dataset 2
+section2 <- data.frame(
+  ID = c(2, 3, 5, 6),
+  Name = c("Eva", "Frank", "Grace", "Hannah"),
+  Score = c(88, 90, 85, 89))
+section1
+section2
+```
+
+```{r}
+#Bind Rows:
+all_classes <- section1 %>% 
+  bind_rows(section2)
+all_classes
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
