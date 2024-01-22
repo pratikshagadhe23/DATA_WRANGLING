@@ -1,0 +1,282 @@
+## DATA WRANGLING:        
+- process of reimaging the raw data to a more structured format, which will help to get better insights and make better decisions from the data.
+- dplyr() package for data wrangling that will allow us to take a data frame and “wrangle” it (transform it) to suit our needs.
+
+
+#### Recursive object & function ??????????  :
+-recursive object in R is an object that can contain another object of the same type as itself.         
+-It's like a structure that repeats or nests within itself.       
+
+-Imagine you have a box, and inside that box, there's another identical box.        
+-Now, if you open the second box, you might find a third identical box, and this pattern can continue.       
+
+-In R, this concept is often seen in data structures like lists or environments.        
+-For example, you can have a list where one of its elements is another list, and within that sublist, there might be another list, and so on.
+
+
+
+*Subsetting:*       
+-subsetting allows the user to access elements from an object.        
+-takes out a portion from the object based on the condition provided.       
+
+* Method 1: Using [] operator:        
+```{r}
+#creating a vector:
+x <- 1:20
+# subsetting a vector:
+cat("First 5 values of vector:",x[1:5],"\n")
+cat("WIthout values present at index 1,2,3:",x[-c(1,2,3)])
+```
+
+```{r}
+#dataset:
+cat("dataset:" ,"/n")
+print(head(mtcars))
+#subsetting:
+cat("hp values of all cars:", "/n")
+print(head(mtcars["hp"]))
+
+```
+
+* Method 2: Using [[]] operator:        
+-used for subsetting of list-objects.       
+-difference is that [[ ]] selects only *one element* whereas [ ] operator can select *more than 1 element* in a single command.        
+
+```{r}
+# Create list
+ls <- list(a = 1, b = 2, c = 10, d = 20)
+
+# Print list
+cat("Original List: \n")
+print(ls)
+
+# Select first element of list
+cat("First element of list: ", ls[[1]], "\n")
+
+```
+
+```{r}
+#Eg2
+# Create list
+z <- list(a = list(x = 1, y = "GFG"), b = 1:10)
+
+# Print list
+cat("Original list:\n")
+print(z)
+
+# Print GFG using c() function
+cat("Using c() function:\n")
+print(z[[c(1, 2)]])
+
+# Print GFG using only [[]] operator
+cat("Using [[]] operator:\n")
+print(z[[1]][[2]])
+
+```
+
+* Method 3: Using $ operator:       
+-used for lists and data frames in R.       
+-Unlike [ ] operator, it selects only a single observation at a time.       
+-can be used to access an element in named list or a column in data frame.        
+-$ operator is only applicable for recursive objects or list-like objects.        
+    
+```{r}
+# Create list
+ls <- list(a = 1, b = 2, c = "Hello", d = "GFG")
+
+# Print list
+cat("Original list:\n")
+print(ls)
+
+# Print "GFG" using $ operator
+cat("Using $ operator:\n")
+print(ls$d)
+```
+```{r}
+# Dataset
+cat("Original data frame:\n")
+print(mtcars)
+
+# Access hp column
+cat("Using $ operator:\n")
+print(mtcars$hp)
+
+```
+
+
+* Method 4: Using subset() Function :               
+-subset() function in R programming is used to create a subset of vectors, matrices, or data frames based on the conditions provided in the parameters.        
+-Syntax: subset(x, subset, select)        
+Parameters: 
+x: indicates the object
+subset: indicates the logical expression on the basis of which subsetting has to be done
+select: indicates columns to select
+
+```{r}
+# Subsetting
+airq <- subset(airquality, Temp < 65, 
+				select = c(Month))
+
+# Print subset
+print(airq)
+
+```
+```{r}
+# Subsetting
+mtc <- subset(mtcars, gear == 5 & hp > 200, 
+					select = c(gear, hp))
+
+# Print subset
+print(mtc)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*Tibbles* :
+- Core data structure of the tidyverse and are used to facilitate the display and analysis of information in a tidy format. 
+-similar to a data frame( or new form of df: where data frames are the most common data structures used to store data sets in R) but comes with some enhanced features and improvements. 
+```{r}
+# Load the tidyverse package
+library(tidyverse)
+
+# Create a tibble
+my_tibble <- tibble(
+  Name = c("Alice", "Bob", "Charlie"),
+  Age = c(25, 30, 22),
+  Score = c(95, 89, 75)
+)
+
+# Print the tibble
+print(my_tibble)
+
+df <- data.frame(
+  fruits = c("apple" ,"oranges" ,"grapes"),
+  color = c("red","orange","green")
+)
+print(df)
+```
+**Advantages:**
+* All Tidyverse packages support Tibbles.
+* Tibbles print in a much cleaner format than data frames.
+* A data frame often converts character strings to factors and analysts often have to override the setting while Tibbles doesn’t try to make this conversion automatically.
+
+
+* 1.as_tibble():         
+-The first function is as tibble function.        
+-This function is used to create a tibble from an *existing data frame*.        
+-Syntax: as_tibble(x, validate = NULL, …) x is either a data frame, matrix, or list.        
+
+* 2.tibble():        
+-The second way is to use a tibble() function, which is used to create a *tibble from scratch.*       
+-Syntax: tibble(s…, rows = NULL) s represents a set of name-value pairs.       
+
+* Import(): Finally, you can use the tidyverse’s data import packages to create Tibbles from external data sources such as databases or CSV files.
+    
+* library(): The library() function is used to load the namespace of the package.       
+
+```{r}
+library(tidyverse)
+head(CO2) #data frame
+```
+
+```{r}
+#Method 1 : Converting to tibble using as_tibble:
+sample_tibble <- as_tibble(CO2)
+print(sample_tibble)
+
+#Method 2: create a tibble from scratch: using tibble():
+name <- c("Pk","Sb","Hg","Sg")
+marks_maths <- c(92,91,90,89)
+marks_jj <- c(27,29,23,24)
+color <- c("red","pink","blue","green")
+students <- tibble(name,marks_maths,marks_jj,color)
+print(students)
+```
+
+
+* Subsetting tibbles:*       
+-Data analysts often extract a single variable from a tibble for further use in their analysis : called as *subsetting*.       
+-When we try to subset a tibble, we extract a single variable from the Tibble in vector form.       
+-Use $ and [[]] operator .       
+
+* Extracting(access a single variable) Using $ operator:*
+```{r}
+students$color
+```
+
+* Extracting using [[ ]]*
+```{r}
+students[["name"]]
+```
+
+* Filtering Tibbles:*       
+-Helps to reduce the number of rows in your tibble.
+-When filtering, we can specify conditions or specific criteria that are used to reduce the number of rows in the dataset.
+-Syntax: filter(data, conditions)
+
+```{r}
+filter_students <- filter(students,marks_jj>24)
+filter_students
+```
+
+* Converting a tibble:*
+-Converting a traditional *data frame* to a *tibble*: as_tible
+```{r}
+data_students <- data.frame(name,marks_maths,marks_jj,color)
+data_students
+tibble_data_converted <- as_tibble(data_students)
+tibble_data_converted
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
